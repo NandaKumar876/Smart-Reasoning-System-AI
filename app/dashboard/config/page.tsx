@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
+import { Settings, Save, Check } from 'lucide-react';
 
 interface Config {
   model: string;
@@ -27,16 +28,13 @@ function Toggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="relative inline-block h-5 w-9 flex-shrink-0 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="peer sr-only"
-      />
-      <span className="absolute inset-0 rounded-full bg-base-border transition-colors peer-checked:bg-teal-500" />
-      <span className="absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-[#e6f5f1] transition-transform peer-checked:translate-x-[18px]" />
-    </label>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`toggle-track ${checked ? 'active' : ''}`}
+    >
+      <div className="toggle-thumb" />
+    </button>
   );
 }
 
@@ -66,29 +64,42 @@ export default function ConfigPage() {
     <div className="flex h-screen">
       <Sidebar />
       <main className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b border-base-border px-6 py-3.5">
-          <h2 className="text-[15px] font-medium text-[#e6f5f1]">System config</h2>
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-white/5 px-6 py-3.5 glass-strong">
+          <div className="flex items-center gap-2.5">
+            <Settings size={18} className="text-indigo-400" />
+            <h2 className="text-[15px] font-semibold text-slate-100">System Config</h2>
+          </div>
           <button
             onClick={save}
-            className="rounded-lg bg-teal-500 px-4 py-1.5 text-[13px] font-medium text-base-bg transition-opacity hover:opacity-90"
+            className={`gradient-btn flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all ${
+              saved ? 'bg-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : ''
+            }`}
           >
-            {saved ? 'Saved!' : 'Save changes'}
+            <span className="relative z-10 flex items-center gap-2">
+              {saved ? <Check size={14} /> : <Save size={14} />}
+              {saved ? 'Saved!' : 'Save changes'}
+            </span>
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          <div className="mx-auto flex max-w-xl flex-col gap-4">
-            <div className="rounded-xl border border-base-border p-4">
-              <div className="mb-3 text-[13px] font-medium text-[#e6f5f1]">Model settings</div>
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="mx-auto flex max-w-xl flex-col gap-5">
+            {/* Model settings */}
+            <div className="glass-card rounded-xl p-5 animate-step-in">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                <h3 className="text-[13px] font-semibold text-slate-200">Model Settings</h3>
+              </div>
 
-              <div className="mb-3">
-                <label className="mb-1.5 block text-[11px] font-medium text-[#7a9d96]">
+              <div className="mb-4">
+                <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   Primary model
                 </label>
                 <select
                   value={config.model}
                   onChange={(e) => setConfig({ ...config, model: e.target.value })}
-                  className="w-full rounded-md border border-base-border bg-base-bg px-2.5 py-2 text-[13px] text-[#e6f5f1] focus:border-teal-500/50 focus:outline-none"
+                  className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200 cursor-pointer"
                 >
                   <option value="claude-sonnet-4-6">claude-sonnet-4-6 (recommended)</option>
                   <option value="claude-opus-4-6">claude-opus-4-6</option>
@@ -97,7 +108,7 @@ export default function ConfigPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[11px] font-medium text-[#7a9d96]">
+                <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   Max reasoning steps
                 </label>
                 <input
@@ -108,30 +119,43 @@ export default function ConfigPage() {
                   onChange={(e) =>
                     setConfig({ ...config, max_steps: Number(e.target.value) })
                   }
-                  className="w-full rounded-md border border-base-border bg-base-bg px-2.5 py-2 text-[13px] text-[#e6f5f1] focus:border-teal-500/50 focus:outline-none"
+                  className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200"
                 />
               </div>
             </div>
 
-            <div className="rounded-xl border border-base-border p-4">
-              <div className="mb-1 text-[13px] font-medium text-[#e6f5f1]">Features</div>
+            {/* Feature toggles */}
+            <div className="glass-card rounded-xl p-5 animate-step-in" style={{ animationDelay: '80ms' }}>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+                <h3 className="text-[13px] font-semibold text-slate-200">Features</h3>
+              </div>
 
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-sm text-[#cfe6e1]">Show &quot;why&quot; explanations</span>
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <span className="text-sm text-slate-200">Show &quot;why&quot; explanations</span>
+                  <p className="text-[11px] text-slate-600 mt-0.5">Display reasoning justifications for each step</p>
+                </div>
                 <Toggle
                   checked={config.show_why_explanations}
                   onChange={(v) => setConfig({ ...config, show_why_explanations: v })}
                 />
               </div>
-              <div className="flex items-center justify-between border-t border-base-border py-2.5">
-                <span className="text-sm text-[#cfe6e1]">Save sessions to Supabase</span>
+              <div className="flex items-center justify-between border-t border-white/5 py-3">
+                <div>
+                  <span className="text-sm text-slate-200">Save sessions to Supabase</span>
+                  <p className="text-[11px] text-slate-600 mt-0.5">Persist all reasoning sessions for history</p>
+                </div>
                 <Toggle
                   checked={config.save_sessions}
                   onChange={(v) => setConfig({ ...config, save_sessions: v })}
                 />
               </div>
-              <div className="flex items-center justify-between border-t border-base-border py-2.5">
-                <span className="text-sm text-[#cfe6e1]">Show token usage</span>
+              <div className="flex items-center justify-between border-t border-white/5 py-3">
+                <div>
+                  <span className="text-sm text-slate-200">Show token usage</span>
+                  <p className="text-[11px] text-slate-600 mt-0.5">Display input/output token counts</p>
+                </div>
                 <Toggle
                   checked={config.show_token_usage}
                   onChange={(v) => setConfig({ ...config, show_token_usage: v })}
@@ -139,7 +163,7 @@ export default function ConfigPage() {
               </div>
             </div>
 
-            <p className="text-xs text-[#4f6b65]">
+            <p className="text-xs text-slate-600 animate-step-in" style={{ animationDelay: '160ms' }}>
               Supabase URL and keys are set via environment variables (.env.local) — not editable
               here, since they require a server restart to take effect.
             </p>
