@@ -2,9 +2,20 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type { ReasoningResult } from '@/types/reasoning';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+let anthropicClient: Anthropic | null = null;
+
+function getAnthropicClient() {
+  if (!anthropicClient) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new ReasoningError('Anthropic API key is missing or empty. Please set ANTHROPIC_API_KEY in your environment/dotenv file.');
+    }
+    anthropicClient = new Anthropic({
+      apiKey,
+    });
+  }
+  return anthropicClient;
+}
 
 export const REASONING_MODEL = 'claude-sonnet-4-6';
 
@@ -94,14 +105,16 @@ export async function runReasoning(problem: string): Promise<RunReasoningOutput>
 
   let response;
   try {
-    response = await anthropic.messages.create({
+    const client = getAnthropicClient();
+    response = await client.messages.create({
       model: REASONING_MODEL,
       max_tokens: 1500,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: problem }],
     });
   } catch (err) {
-    throw new ReasoningError('Anthropic API request failed.', err);
+    const errMsg = err instanceof Error ? err.message : 'Anthropic API request failed.';
+    throw new ReasoningError(errMsg, err);
   }
 
   const latencyMs = Date.now() - startedAt;
