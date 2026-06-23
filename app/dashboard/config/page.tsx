@@ -41,23 +41,44 @@ function Toggle({
 export default function ConfigPage() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/config')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('Fetch failed');
+        return r.json();
+      })
       .then((data) => {
         if (data.config) setConfig({ ...DEFAULT_CONFIG, ...data.config });
-      });
+      })
+      .catch((err) => console.error('Failed to load config:', err));
   }, []);
 
   async function save() {
-    await fetch('/api/config', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config),
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
+    setError(null);
+    setSaved(false);
+    try {
+      const res = await fetch('/api/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) {
+        let errMsg = 'Failed to save configuration';
+        try {
+          const data = await res.json();
+          errMsg = data.error || errMsg;
+        } catch {}
+        throw new Error(errMsg);
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1800);
+    } catch (err) {
+      console.error('Failed to save config:', err);
+      setError(err instanceof Error ? err.message : 'Save failed');
+      setTimeout(() => setError(null), 3000);
+    }
   }
 
   return (
@@ -70,17 +91,24 @@ export default function ConfigPage() {
             <Settings size={18} className="text-indigo-400" />
             <h2 className="text-[15px] font-semibold text-slate-100">System Config</h2>
           </div>
-          <button
-            onClick={save}
-            className={`gradient-btn flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all ${
-              saved ? 'bg-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : ''
-            }`}
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              {saved ? <Check size={14} /> : <Save size={14} />}
-              {saved ? 'Saved!' : 'Save changes'}
-            </span>
-          </button>
+          <div className="flex items-center gap-3">
+            {error && (
+              <span className="text-xs text-red-400 font-medium animate-pulse">
+                {error}
+              </span>
+            )}
+            <button
+              onClick={save}
+              className={`gradient-btn flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all ${
+                saved ? 'bg-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : ''
+              }`}
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                {saved ? <Check size={14} /> : <Save size={14} />}
+                {saved ? 'Saved!' : 'Save changes'}
+              </span>
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
