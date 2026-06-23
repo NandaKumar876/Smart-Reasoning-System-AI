@@ -26,10 +26,18 @@ export default function ReasonPage() {
         body: JSON.stringify({ problem }),
       });
 
-      const data = await res.json();
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        if (!res.ok) {
+          throw new Error(`Server error (${res.status}): ${res.statusText || 'Internal Server Error'}`);
+        }
+        throw new Error('Failed to parse server response.');
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong.');
+        throw new Error(data?.error || 'Something went wrong.');
       }
 
       setResult({ steps: data.steps, final_answer: data.final_answer });
