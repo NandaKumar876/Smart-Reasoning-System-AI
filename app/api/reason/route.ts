@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runReasoning, ReasoningError } from '@/lib/reasoning-agent';
 import { createSupabaseAdminClient } from '@/lib/supabase-admin';
 
+export const dynamic = 'force-dynamic';
+
 // Simple in-memory rate limiter (per server instance).
 // For multi-instance deployments, swap this for a Redis/Upstash-backed limiter.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
