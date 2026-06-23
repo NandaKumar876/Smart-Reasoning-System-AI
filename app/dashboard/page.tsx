@@ -33,14 +33,30 @@ const CARD_COLORS = [
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch('/api/stats')
-      .then((r) => r.json())
-      .then(setStats);
+      .then((r) => {
+        if (!r.ok) throw new Error('Stats fetch failed');
+        return r.json();
+      })
+      .then((data) => {
+        setStats(data);
+        setIsConnected(true);
+      })
+      .catch((err) => {
+        console.error(err);
+        setIsConnected(false);
+      });
+
     fetch('/api/sessions?limit=8')
-      .then((r) => r.json())
-      .then((data) => setSessions(data.sessions ?? []));
+      .then((r) => {
+        if (!r.ok) throw new Error('Sessions fetch failed');
+        return r.json();
+      })
+      .then((data) => setSessions(data.sessions ?? []))
+      .catch((err) => console.error(err));
   }, []);
 
   const cards = [
@@ -153,8 +169,22 @@ export default function DashboardPage() {
           </div>
           <div className="rounded-xl glass-card p-4">
             <div className="mb-2 flex items-center gap-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-              <span className="text-sm font-medium text-slate-200">Connected</span>
+              {isConnected === true ? (
+                <>
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                  <span className="text-sm font-medium text-slate-200">Connected</span>
+                </>
+              ) : isConnected === false ? (
+                <>
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse" />
+                  <span className="text-sm font-medium text-red-400">Disconnected (Check env vars / logs)</span>
+                </>
+              ) : (
+                <>
+                  <span className="h-2.5 w-2.5 rounded-full bg-slate-500 animate-pulse" />
+                  <span className="text-sm font-medium text-slate-400">Checking connection...</span>
+                </>
+              )}
             </div>
             <div className="font-mono text-xs text-slate-500">
               {process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'NEXT_PUBLIC_SUPABASE_URL not set'}
