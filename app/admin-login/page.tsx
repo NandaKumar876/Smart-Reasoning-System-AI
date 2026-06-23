@@ -34,8 +34,14 @@ function AdminLoginForm() {
     if (res.ok) {
       router.push(params.get('redirect') || '/dashboard');
     } else {
-      const data = await res.json();
-      setError(data.error || 'Login failed.');
+      let errMsg = 'Login failed.';
+      try {
+        const data = await res.json();
+        errMsg = data.error || errMsg;
+      } catch {
+        errMsg = `Server error (${res.status}): ${res.statusText || 'Internal Server Error'}`;
+      }
+      setError(errMsg);
     }
     setLoading(false);
   }
