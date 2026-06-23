@@ -29,15 +29,26 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetch('/api/sessions?limit=30')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`Server error (${r.status})`);
+        return r.json();
+      })
       .then((data) => setSessions(data.sessions ?? []))
+      .catch((err) => console.error('Failed to load sessions:', err))
       .finally(() => setLoading(false));
   }, []);
 
   async function openSession(id: string) {
-    const res = await fetch(`/api/sessions/${id}`);
-    const data = await res.json();
-    setSelected(data.session);
+    try {
+      const res = await fetch(`/api/sessions/${id}`);
+      if (!res.ok) {
+        throw new Error(`Failed to load session details: Server error (${res.status})`);
+      }
+      const data = await res.json();
+      setSelected(data.session);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (
