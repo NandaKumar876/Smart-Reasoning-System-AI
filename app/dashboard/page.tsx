@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { CircleDot } from 'lucide-react';
+import { CircleDot, BarChart3, Zap, Clock, Coins } from 'lucide-react';
 
 interface Stats {
   total_sessions: number;
@@ -21,6 +21,14 @@ interface SessionRow {
   status: string;
   created_at: string;
 }
+
+const CARD_ICONS = [BarChart3, Zap, Clock, Coins];
+const CARD_COLORS = [
+  'text-indigo-400',
+  'text-purple-400',
+  'text-cyan-400',
+  'text-amber-400',
+];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -54,64 +62,81 @@ export default function DashboardPage() {
     <div className="flex h-screen">
       <Sidebar />
       <main className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b border-base-border px-6 py-3.5">
-          <h2 className="text-[15px] font-medium text-[#e6f5f1]">Admin dashboard</h2>
-          <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
-            <CircleDot size={11} /> Live
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-white/5 px-6 py-3.5 glass-strong">
+          <div className="flex items-center gap-2.5">
+            <BarChart3 size={18} className="text-indigo-400" />
+            <h2 className="text-[15px] font-semibold text-slate-100">Admin Dashboard</h2>
+          </div>
+          <span className="badge badge-emerald flex items-center gap-1.5">
+            <CircleDot size={10} /> Live
           </span>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          <div className="mb-6 grid grid-cols-4 gap-3">
-            {cards.map((c) => (
-              <div key={c.label} className="rounded-lg bg-base-surface p-3.5">
-                <div className="mb-1.5 text-[11px] text-[#7a9d96]">{c.label}</div>
-                <div className="text-[22px] font-medium text-[#e6f5f1]">{c.value}</div>
-                <div className="mt-0.5 text-[11px] text-[#4f6b65]">{c.sub}</div>
-              </div>
-            ))}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          {/* Stats grid */}
+          <div className="mb-6 grid grid-cols-4 gap-4">
+            {cards.map((c, i) => {
+              const Icon = CARD_ICONS[i];
+              return (
+                <div
+                  key={c.label}
+                  className="stat-card glass-card rounded-xl p-4 animate-step-in"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{c.label}</span>
+                    <Icon size={16} className={CARD_COLORS[i]} />
+                  </div>
+                  <div className="text-2xl font-bold text-slate-100 mb-0.5">{c.value}</div>
+                  <div className="text-[11px] text-slate-600">{c.sub}</div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="mb-3 text-[13px] font-medium text-[#e6f5f1]">Recent sessions</div>
-          <div className="mb-6 overflow-hidden rounded-xl border border-base-border">
+          {/* Recent sessions table */}
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="text-[13px] font-semibold text-slate-200">Recent sessions</h3>
+            <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
+          </div>
+          <div className="mb-6 overflow-hidden rounded-xl glass-card">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-base-surface2 text-left text-[#7a9d96]">
-                  <th className="px-3.5 py-2.5 font-medium">Problem</th>
-                  <th className="px-3.5 py-2.5 font-medium">Model</th>
-                  <th className="px-3.5 py-2.5 font-medium">Latency</th>
-                  <th className="px-3.5 py-2.5 font-medium">Time</th>
-                  <th className="px-3.5 py-2.5 font-medium">Status</th>
+                <tr className="border-b border-white/5 text-left">
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Problem</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Model</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Latency</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Time</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-3.5 py-6 text-center text-[#4f6b65]">
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-600">
                       No sessions yet
                     </td>
                   </tr>
                 )}
-                {sessions.map((s) => (
-                  <tr key={s.id} className="border-t border-base-border">
-                    <td className="max-w-[220px] truncate px-3.5 py-2.5 text-[#cfe6e1]">
+                {sessions.map((s, i) => (
+                  <tr
+                    key={s.id}
+                    className="border-t border-white/5 transition-colors hover:bg-white/[0.02] animate-step-in"
+                    style={{ animationDelay: `${i * 50}ms` }}
+                  >
+                    <td className="max-w-[220px] truncate px-4 py-3 text-slate-300">
                       {s.problem}
                     </td>
-                    <td className="px-3.5 py-2.5 font-mono text-[11px] text-[#9ab8b1]">
+                    <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
                       {s.model}
                     </td>
-                    <td className="px-3.5 py-2.5 text-[#9ab8b1]">{s.latency_ms}ms</td>
-                    <td className="px-3.5 py-2.5 text-[#9ab8b1]">
+                    <td className="px-4 py-3 text-slate-400">{s.latency_ms}ms</td>
+                    <td className="px-4 py-3 text-slate-500">
                       {new Date(s.created_at).toLocaleTimeString()}
                     </td>
-                    <td className="px-3.5 py-2.5">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                          s.status === 'success'
-                            ? 'bg-emerald-500/15 text-emerald-300'
-                            : 'bg-red-500/15 text-red-300'
-                        }`}
-                      >
+                    <td className="px-4 py-3">
+                      <span className={`badge ${s.status === 'success' ? 'badge-emerald' : 'badge-red'}`}>
                         {s.status}
                       </span>
                     </td>
@@ -121,16 +146,20 @@ export default function DashboardPage() {
             </table>
           </div>
 
-          <div className="mb-3 text-[13px] font-medium text-[#e6f5f1]">Supabase connection</div>
-          <div className="rounded-xl border border-base-border p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span className="text-sm text-[#e6f5f1]">Connected</span>
+          {/* Supabase connection */}
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="text-[13px] font-semibold text-slate-200">Supabase Connection</h3>
+            <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
+          </div>
+          <div className="rounded-xl glass-card p-4">
+            <div className="mb-2 flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+              <span className="text-sm font-medium text-slate-200">Connected</span>
             </div>
-            <div className="font-mono text-xs text-[#7a9d96]">
+            <div className="font-mono text-xs text-slate-500">
               {process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'NEXT_PUBLIC_SUPABASE_URL not set'}
             </div>
-            <div className="mt-1 text-xs text-[#7a9d96]">
+            <div className="mt-1 text-xs text-slate-600">
               Tables: sessions · app_config · system_logs
             </div>
           </div>
