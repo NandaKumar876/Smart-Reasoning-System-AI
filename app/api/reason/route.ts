@@ -49,63 +49,81 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Field "problem" is required.' }, { status: 400 });
   }
 
-  const supabase = createSupabaseAdminClient();
+  let supabase: any = null;
+  try {
+    supabase = createSupabaseAdminClient();
+  } catch (err) {
+    console.warn('Supabase admin client could not be initialized:', err instanceof Error ? err.message : err);
+  }
 
   try {
     const { result, inputTokens, outputTokens, latencyMs } = await runReasoning(problem);
 
-    const { data, error: dbError } = await supabase
-      .from('sessions')
-      .insert({
-        problem,
-        steps: result.steps,
-        final_answer: result.final_answer,
-        model: 'claude-sonnet-4-6',
-        input_tokens: inputTokens,
-        output_tokens: outputTokens,
-        latency_ms: latencyMs,
-        status: 'success',
-      })
-      .select('id, created_at')
-      .single();
+    let sessionData: any = null;
+    if (supabase) {
+      try {
+        const { data, error: dbError } = await supabase
+          .from('sessions')
+          .insert({
+            problem,
+            steps: result.steps,
+            final_answer: result.final_answer,
+            model: 'claude-sonnet-4-6',
+            input_tokens: inputTokens,
+            output_tokens: outputTokens,
+            latency_ms: latencyMs,
+            status: 'success',
+          })
+          .select('id, created_at')
+          .single();
 
-    if (dbError) {
-      // Reasoning succeeded but persistence failed — still return the result
-      // to the user, just flag it wasn't saved.
-      console.error('Failed to persist session:', dbError.message);
+        if (dbError) {
+          console.error('Failed to persist session:', dbError.message);
+        } else {
+          sessionData = data;
+        }
+
+        await supabase.from('system_logs').insert({
+          level: 'success',
+          message: `Reasoning completed in ${latencyMs}ms (${inputTokens}+${outputTokens} tokens)`,
+        });
+      } catch (dbErr) {
+        console.error('Database log operation failed:', dbErr);
+      }
     }
 
-    await supabase.from('system_logs').insert({
-      level: 'success',
-      message: `Reasoning completed in ${latencyMs}ms (${inputTokens}+${outputTokens} tokens)`,
-    });
-
     return NextResponse.json({
-      id: data?.id ?? null,
+      id: sessionData?.id ?? null,
       ...result,
       meta: {
         model: 'claude-sonnet-4-6',
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         latency_ms: latencyMs,
-        created_at: data?.created_at ?? new Date().toISOString(),
+        created_at: sessionData?.created_at ?? new Date().toISOString(),
       },
     });
   } catch (err) {
-    const message = err instanceof ReasoningError ? err.message : 'Unexpected server error.';
+    const message = err instanceof Error ? err.message : 'Unexpected server error.';
 
-    await supabase.from('sessions').insert({
-      problem,
-      steps: [],
-      final_answer: null,
-      status: 'error',
-      error_message: message,
-    });
+    if (supabase) {
+      try {
+        await supabase.from('sessions').insert({
+          problem,
+          steps: [],
+          final_answer: null,
+          status: 'error',
+          error_message: message,
+        });
 
-    await supabase.from('system_logs').insert({
-      level: 'error',
-      message: `Reasoning failed: ${message}`,
-    });
+        await supabase.from('system_logs').insert({
+          level: 'error',
+          message: `Reasoning failed: ${message}`,
+        });
+      } catch (dbErr) {
+        console.error('Failed to write failure log to database:', dbErr);
+      }
+    }
 
     console.error('Reasoning error:', err);
     return NextResponse.json({ error: message }, { status: 502 });
