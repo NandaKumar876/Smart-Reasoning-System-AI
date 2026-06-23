@@ -24,10 +24,17 @@ export default function LogsPage() {
 
   async function loadLogs() {
     setRefreshing(true);
-    const res = await fetch('/api/logs?limit=100');
-    const data = await res.json();
-    setLogs(data.logs ?? []);
-    setRefreshing(false);
+    try {
+      const res = await fetch('/api/logs?limit=100');
+      if (!res.ok) throw new Error(`Server error (${res.status})`);
+      const data = await res.json();
+      setLogs(data.logs ?? []);
+    } catch (err) {
+      console.error('Failed to load logs:', err);
+      setLogs([]);
+    } finally {
+      setRefreshing(false);
+    }
   }
 
   useEffect(() => {
