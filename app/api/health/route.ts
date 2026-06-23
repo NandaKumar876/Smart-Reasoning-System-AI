@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
   const hasSupabaseConfig = Boolean(
