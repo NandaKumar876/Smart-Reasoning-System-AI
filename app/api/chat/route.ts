@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseAdminClient } from '@/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +21,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  let apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey || !apiKey.trim()) {
+    try {
+      const supabase = createSupabaseAdminClient();
+      const { data } = await supabase
+        .from('app_config')
+        .select('value')
+        .eq('key', 'anthropic_api_key')
+        .single();
+      if (data && typeof data.value === 'string' && data.value.trim()) {
+        apiKey = data.value.trim();
+      }
+    } catch {}
+  }
+
+  if (!apiKey || !apiKey.trim()) {
     return NextResponse.json({
       reply:
         "I'm currently in demo mode since the API key isn't configured. I'm ReasonAI's assistant — I can help you navigate the app, explain how the reasoning engine works, or suggest problems to try. Just ask!",
