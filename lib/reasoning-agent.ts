@@ -1,18 +1,43 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type { ReasoningResult } from '@/types/reasoning';
+import { createSupabaseAdminClient } from './supabase-admin';
 
 let anthropicClient: Anthropic | null = null;
+let currentApiKey: string | null = null;
 
-function getAnthropicClient() {
-  if (!anthropicClient) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new ReasoningError('Anthropic API key is missing or empty. Please set ANTHROPIC_API_KEY in your environment/dotenv file.');
+async function getApiKey(): Promise<string> {
+  const envKey = process.env.ANTHROPIC_API_KEY;
+  if (envKey && envKey.trim()) {
+    return envKey.trim();
+  }
+
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data } = await supabase
+      .from('app_config')
+      .select('value')
+      .eq('key', 'anthropic_api_key')
+      .single();
+    if (data && typeof data.value === 'string' && data.value.trim()) {
+      return data.value.trim();
     }
+  } catch (err) {
+    // Ignore and proceed to throw
+  }
+
+  throw new ReasoningError(
+    'Anthropic API key is missing or empty. Please set ANTHROPIC_API_KEY in your environment/dotenv file or in the System Config page.'
+  );
+}
+
+async function getAnthropicClient(): Promise<Anthropic> {
+  const apiKey = await getApiKey();
+  if (!anthropicClient || apiKey !== currentApiKey) {
     anthropicClient = new Anthropic({
       apiKey,
     });
+    currentApiKey = apiKey;
   }
   return anthropicClient;
 }
@@ -105,7 +130,7 @@ export async function runReasoning(problem: string): Promise<RunReasoningOutput>
 
   let response;
   try {
-    const client = getAnthropicClient();
+    const client = await getAnthropicClient();
     response = await client.messages.create({
       model: REASONING_MODEL,
       max_tokens: 1500,
