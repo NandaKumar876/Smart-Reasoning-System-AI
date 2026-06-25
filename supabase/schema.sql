@@ -43,7 +43,8 @@ insert into app_config (key, value) values
   ('max_steps', '6'),
   ('show_why_explanations', 'true'),
   ('save_sessions', 'true'),
-  ('show_token_usage', 'false')
+  ('show_token_usage', 'false'),
+  ('anthropic_api_key', '""')
 on conflict (key) do nothing;
 
 -- ============================================================
