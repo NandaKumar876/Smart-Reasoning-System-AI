@@ -10,6 +10,7 @@ interface Config {
   show_why_explanations: boolean;
   save_sessions: boolean;
   show_token_usage: boolean;
+  anthropic_api_key: string;
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -18,6 +19,7 @@ const DEFAULT_CONFIG: Config = {
   show_why_explanations: true,
   save_sessions: true,
   show_token_usage: false,
+  anthropic_api_key: '',
 };
 
 function Toggle({
@@ -191,7 +193,31 @@ export default function ConfigPage() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 animate-step-in" style={{ animationDelay: '160ms' }}>
+            {/* API Credentials */}
+            <div className="glass-card rounded-xl p-5 animate-step-in" style={{ animationDelay: '160ms' }}>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                <h3 className="text-[13px] font-semibold text-slate-200">API Credentials</h3>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Anthropic API Key
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter sk-ant-..."
+                  value={config.anthropic_api_key}
+                  onChange={(e) => setConfig({ ...config, anthropic_api_key: e.target.value })}
+                  className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200"
+                />
+                <p className="text-[11px] text-slate-600 mt-1.5">
+                  Falls back to process.env.ANTHROPIC_API_KEY if not configured here.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 animate-step-in" style={{ animationDelay: '240ms' }}>
               Supabase URL and keys are set via environment variables (.env.local) — not editable
               here, since they require a server restart to take effect.
             </p>
