@@ -1,13 +1,13 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import type { ReasoningResult } from '@/types/reasoning';
 import { createSupabaseAdminClient } from './supabase-admin';
 
-let anthropicClient: Anthropic | null = null;
+let genAIClient: GoogleGenerativeAI | null = null;
 let currentApiKey: string | null = null;
 
 async function getApiKey(): Promise<string> {
-  const envKey = process.env.ANTHROPIC_API_KEY;
+  const envKey = process.env.GEMINI_API_KEY;
   if (envKey && envKey.trim()) {
     return envKey.trim();
   }
@@ -17,7 +17,7 @@ async function getApiKey(): Promise<string> {
     const { data } = await supabase
       .from('app_config')
       .select('value')
-      .eq('key', 'anthropic_api_key')
+      .eq('key', 'gemini_api_key')
       .single();
     if (data && typeof data.value === 'string' && data.value.trim()) {
       return data.value.trim();
@@ -27,22 +27,20 @@ async function getApiKey(): Promise<string> {
   }
 
   throw new ReasoningError(
-    'Anthropic API key is missing or empty. Please set ANTHROPIC_API_KEY in your environment/dotenv file or in the System Config page.'
+    'Google Gemini API key is missing or empty. Please set GEMINI_API_KEY in your environment/dotenv file or in the System Config page.'
   );
 }
 
-async function getAnthropicClient(): Promise<Anthropic> {
+async function getGeminiClient(): Promise<GoogleGenerativeAI> {
   const apiKey = await getApiKey();
-  if (!anthropicClient || apiKey !== currentApiKey) {
-    anthropicClient = new Anthropic({
-      apiKey,
-    });
+  if (!genAIClient || apiKey !== currentApiKey) {
+    genAIClient = new GoogleGenerativeAI(apiKey);
     currentApiKey = apiKey;
   }
-  return anthropicClient;
+  return genAIClient;
 }
 
-export const REASONING_MODEL = 'claude-sonnet-4-6';
+export const REASONING_MODEL = 'gemini-2.5-flash';
 
 /**
  * The system prompt is the single most important piece of prompt engineering
@@ -114,7 +112,7 @@ function extractJson(raw: string): string {
 }
 
 /**
- * Calls Claude with the reasoning system prompt, validates the structured
+ * Calls Google Gemini with the reasoning system prompt, validates the structured
  * JSON response against a schema, and returns timing/token metadata for
  * observability in the admin dashboard.
  */
@@ -128,30 +126,46 @@ export async function runReasoning(problem: string): Promise<RunReasoningOutput>
 
   const startedAt = Date.now();
 
-  let response;
+  let responseText: string;
+  let inputTokens = 0;
+  let outputTokens = 0;
+
   try {
-    const client = await getAnthropicClient();
-    response = await client.messages.create({
+    const client = await getGeminiClient();
+    const model = client.getGenerativeModel({
       model: REASONING_MODEL,
-      max_tokens: 1500,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: problem }],
+      systemInstruction: SYSTEM_PROMPT,
+      generationConfig: {
+        maxOutputTokens: 1500,
+        temperature: 0.7,
+        responseMimeType: 'application/json',
+      },
     });
+
+    const result = await model.generateContent(problem);
+    const response = result.response;
+    responseText = response.text();
+
+    // Extract token usage from response metadata
+    const usageMetadata = response.usageMetadata;
+    if (usageMetadata) {
+      inputTokens = usageMetadata.promptTokenCount ?? 0;
+      outputTokens = usageMetadata.candidatesTokenCount ?? 0;
+    }
   } catch (err) {
-    const errMsg = err instanceof Error ? err.message : 'Anthropic API request failed.';
+    const errMsg = err instanceof Error ? err.message : 'Google Gemini API request failed.';
     throw new ReasoningError(errMsg, err);
   }
 
   const latencyMs = Date.now() - startedAt;
 
-  const textBlock = response.content.find((b) => b.type === 'text');
-  if (!textBlock || textBlock.type !== 'text') {
+  if (!responseText) {
     throw new ReasoningError('Model returned no text content.');
   }
 
   let parsedJson: unknown;
   try {
-    parsedJson = JSON.parse(extractJson(textBlock.text));
+    parsedJson = JSON.parse(extractJson(responseText));
   } catch (err) {
     throw new ReasoningError('Model response was not valid JSON.', err);
   }
@@ -166,8 +180,8 @@ export async function runReasoning(problem: string): Promise<RunReasoningOutput>
 
   return {
     result: validation.data,
-    inputTokens: response.usage.input_tokens,
-    outputTokens: response.usage.output_tokens,
+    inputTokens,
+    outputTokens,
     latencyMs,
   };
 }
