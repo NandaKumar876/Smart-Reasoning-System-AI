@@ -7,7 +7,7 @@ not just what the answer is.
 ## Stack
 
 - **Frontend:** Next.js 14 (App Router) + React + Tailwind CSS
-- **Reasoning engine:** Claude (`claude-sonnet-4-6`) via the Anthropic SDK, driven by a
+- **Reasoning engine:** Google Gemini (`gemini-2.5-flash`) via the @google/generative-ai SDK, driven by a
   structured system prompt + Zod schema validation (prompt engineering, not fine-tuning)
 - **Backend / persistence:** Supabase (Postgres + RLS) for sessions, config, and logs
 - **Admin:** `/dashboard`, `/dashboard/config`, `/dashboard/logs`
@@ -30,7 +30,7 @@ app/
   dashboard/config/page.tsx Model + feature toggles
   dashboard/logs/page.tsx   Raw system logs
 lib/
-  reasoning-agent.ts         Prompt engineering + Anthropic call + validation
+  reasoning-agent.ts         Prompt engineering + Google Gemini call + validation
   supabase-admin.ts          Service-role client (server only)
   supabase-browser.ts         Anon client (browser-safe)
 types/reasoning.ts           Shared TS types
@@ -53,9 +53,9 @@ npm install
 3. Grab your **Project URL**, **anon key**, and **service_role key** from
    Project Settings → API.
 
-### 3. Get an Anthropic API key
+### 3. Get a Google Gemini API key
 
-Create one at [console.anthropic.com](https://console.anthropic.com).
+Create one at [aistudio.google.com](https://aistudio.google.com/apikey).
 
 ### 4. Configure environment variables
 
@@ -66,13 +66,13 @@ cp .env.example .env.local
 Fill in:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...
+GEMINI_API_KEY=AIza...
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
-**Never** expose `SUPABASE_SERVICE_ROLE_KEY` or `ANTHROPIC_API_KEY` to the client —
+**Never** expose `SUPABASE_SERVICE_ROLE_KEY` or `GEMINI_API_KEY` to the client —
 they're only read inside `app/api/*/route.ts` files (server-side).
 
 ### 5. Run locally
@@ -86,7 +86,7 @@ Visit `http://localhost:3000` → redirects to `/reason`.
 ## How the reasoning engine works
 
 `lib/reasoning-agent.ts` is the core of the "agent": it sends a system prompt that
-forces Claude into a 4-stage structure (decompose, analyze, reason, conclude) and
+forces Gemini into a 4-stage structure (decompose, analyze, reason, conclude) and
 requires a `why` justification per step. The response is parsed as JSON and validated
 against a Zod schema before it ever reaches the database or the UI — so malformed
 model output fails loudly instead of silently breaking the page.
@@ -94,13 +94,13 @@ model output fails loudly instead of silently breaking the page.
 This is prompt-engineering-based reasoning (not a separate fine-tuned model), which
 is the right tradeoff for this use case: it's fast to iterate on, fully observable
 (you can read the prompt and know exactly what it does), and good enough at
-`claude-sonnet-4-6` quality for general problem decomposition.
+`gemini-2.5-flash` quality for general problem decomposition.
 
 ### Extending to multi-agent
 
 If you want to go further (e.g. a separate "critic" agent that checks the reasoning
 before showing it to the user), the natural extension point is `runReasoning()` in
-`lib/reasoning-agent.ts` — wrap its output in a second Claude call that scores/revises
+`lib/reasoning-agent.ts` — wrap its output in a second Gemini call that scores/revises
 the steps before returning.
 
 ## Deployment
