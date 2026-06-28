@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: 'ReasonAI — Smart Reasoning System',
   description:
     'An AI tool that breaks complex problems into clear steps, shows transparent reasoning, and explains why each answer makes sense.',
-  keywords: ['AI', 'reasoning', 'Claude', 'smart reasoning', 'problem solving'],
+  keywords: ['AI', 'reasoning', 'Gemini', 'smart reasoning', 'problem solving', 'Google AI'],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
