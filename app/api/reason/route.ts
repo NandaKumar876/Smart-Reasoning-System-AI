@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
             problem,
             steps: result.steps,
             final_answer: result.final_answer,
-            model: 'claude-sonnet-4-6',
+            model: 'gemini-2.5-flash',
             input_tokens: inputTokens,
             output_tokens: outputTokens,
             latency_ms: latencyMs,
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       id: sessionData?.id ?? null,
       ...result,
       meta: {
-        model: 'claude-sonnet-4-6',
+        model: 'gemini-2.5-flash',
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         latency_ms: latencyMs,
