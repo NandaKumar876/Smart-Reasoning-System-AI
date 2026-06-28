@@ -14,7 +14,7 @@ create table if not exists sessions (
   problem         text not null,
   steps           jsonb not null default '[]'::jsonb,
   final_answer    text,
-  model           text not null default 'claude-sonnet-4-6',
+  model           text not null default 'gemini-2.5-flash',
   input_tokens    integer not null default 0,
   output_tokens   integer not null default 0,
   latency_ms      integer not null default 0,
@@ -39,12 +39,12 @@ create table if not exists app_config (
 );
 
 insert into app_config (key, value) values
-  ('model', '"claude-sonnet-4-6"'),
+  ('model', '"gemini-2.5-flash"'),
   ('max_steps', '6'),
   ('show_why_explanations', 'true'),
   ('save_sessions', 'true'),
   ('show_token_usage', 'false'),
-  ('anthropic_api_key', '""')
+  ('gemini_api_key', '""')
 on conflict (key) do nothing;
 
 -- ============================================================
