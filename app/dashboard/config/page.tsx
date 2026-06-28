@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { Settings, Save, Check } from 'lucide-react';
+import { Settings, Save, Check, Cpu, Sparkles, KeyRound } from 'lucide-react';
 
 interface Config {
   model: string;
@@ -84,125 +84,153 @@ export default function ConfigPage() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden dot-grid">
       <Sidebar />
-      <main className="flex flex-1 flex-col overflow-hidden">
+      <main className="flex flex-1 flex-col overflow-hidden relative">
+        {/* Decorative corner ambient glow */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-indigo-500/5 via-purple-500/5 to-transparent rounded-full blur-[100px] pointer-events-none" />
+
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-white/5 px-6 py-3.5 glass-strong">
-          <div className="flex items-center gap-2.5">
-            <Settings size={18} className="text-indigo-400" />
-            <h2 className="text-[15px] font-semibold text-slate-100">System Config</h2>
+        <header className="flex items-center justify-between border-b border-white/5 px-6 py-4 glass-strong relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+              <Settings size={16} className="text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-100 tracking-tight">System Configuration</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Fine-tune the model parameters, features, and database settings</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {error && (
-              <span className="text-xs text-red-400 font-medium animate-pulse">
+              <span className="text-xs text-rose-400 font-semibold animate-pulse mr-1">
                 {error}
               </span>
             )}
             <button
               onClick={save}
-              className={`gradient-btn flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all ${
-                saved ? 'bg-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : ''
+              className={`gradient-btn flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold transition-all ${
+                saved ? 'bg-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.4)]' : ''
               }`}
             >
-              <span className="relative z-10 flex items-center gap-2">
-                {saved ? <Check size={14} /> : <Save size={14} />}
-                {saved ? 'Saved!' : 'Save changes'}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {saved ? <Check size={14} className="stroke-[3]" /> : <Save size={14} />}
+                {saved ? 'Saved!' : 'Save Config'}
               </span>
             </button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="mx-auto flex max-w-xl flex-col gap-5">
+        <div className="flex-1 overflow-y-auto px-8 py-8 relative z-10">
+          <div className="mx-auto flex max-w-xl flex-col gap-6">
             {/* Model settings */}
-            <div className="glass-card rounded-xl p-5 animate-step-in">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                <h3 className="text-[13px] font-semibold text-slate-200">Model Settings</h3>
+            <div className="glass-card rounded-2xl p-6 border border-white/[0.03] shadow-lg animate-step-in space-y-5">
+              <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                  <Cpu size={15} className="text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Model Settings</h3>
+                  <p className="text-[10px] text-slate-500 font-medium">Select primary engine and parsing complexity</p>
+                </div>
               </div>
 
-              <div className="mb-4">
-                <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  Primary model
-                </label>
-                <select
-                  value={config.model}
-                  onChange={(e) => setConfig({ ...config, model: e.target.value })}
-                  className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200 cursor-pointer"
-                >
-                  <option value="gemini-2.5-flash">gemini-2.5-flash (recommended)</option>
-                  <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-                  <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                  <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-                </select>
-              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-[9.5px] font-bold text-slate-500 uppercase tracking-widest">
+                    Primary Reasoning Engine
+                  </label>
+                  <select
+                    value={config.model}
+                    onChange={(e) => setConfig({ ...config, model: e.target.value })}
+                    className="w-full rounded-xl input-glass px-3.5 py-3 text-xs text-slate-200 cursor-pointer focus-ring"
+                  >
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (recommended)</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                    <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                    <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  Max reasoning steps
-                </label>
-                <input
-                  type="number"
-                  min={2}
-                  max={12}
-                  value={config.max_steps}
-                  onChange={(e) =>
-                    setConfig({ ...config, max_steps: Number(e.target.value) })
-                  }
-                  className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200"
-                />
+                <div>
+                  <label className="mb-2 block text-[9.5px] font-bold text-slate-500 uppercase tracking-widest">
+                    Max Reasoning Steps Limit
+                  </label>
+                  <input
+                    type="number"
+                    min={2}
+                    max={12}
+                    value={config.max_steps}
+                    onChange={(e) =>
+                      setConfig({ ...config, max_steps: Number(e.target.value) })
+                    }
+                    className="w-full rounded-xl input-glass px-3.5 py-2.5 text-xs text-slate-200 focus-ring"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-1 block">Upper bound boundary to prevent response overflow.</span>
+                </div>
               </div>
             </div>
 
             {/* Feature toggles */}
-            <div className="glass-card rounded-xl p-5 animate-step-in" style={{ animationDelay: '80ms' }}>
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-purple-400" />
-                <h3 className="text-[13px] font-semibold text-slate-200">Features</h3>
+            <div className="glass-card rounded-2xl p-6 border border-white/[0.03] shadow-lg animate-step-in space-y-4" style={{ animationDelay: '80ms' }}>
+              <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={14} className="text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Features Activation</h3>
+                  <p className="text-[10px] text-slate-500 font-medium">Toggle core application layers</p>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <span className="text-sm text-slate-200">Show &quot;why&quot; explanations</span>
-                  <p className="text-[11px] text-slate-600 mt-0.5">Display reasoning justifications for each step</p>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-200">Show &quot;why&quot; explanations</span>
+                    <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium">Display reasoning justifications for each step</p>
+                  </div>
+                  <Toggle
+                    checked={config.show_why_explanations}
+                    onChange={(v) => setConfig({ ...config, show_why_explanations: v })}
+                  />
                 </div>
-                <Toggle
-                  checked={config.show_why_explanations}
-                  onChange={(v) => setConfig({ ...config, show_why_explanations: v })}
-                />
-              </div>
-              <div className="flex items-center justify-between border-t border-white/5 py-3">
-                <div>
-                  <span className="text-sm text-slate-200">Save sessions to Supabase</span>
-                  <p className="text-[11px] text-slate-600 mt-0.5">Persist all reasoning sessions for history</p>
+                <div className="flex items-center justify-between border-t border-white/5 py-3">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-200">Save sessions to Supabase</span>
+                    <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium">Persist all reasoning sessions for history</p>
+                  </div>
+                  <Toggle
+                    checked={config.save_sessions}
+                    onChange={(v) => setConfig({ ...config, save_sessions: v })}
+                  />
                 </div>
-                <Toggle
-                  checked={config.save_sessions}
-                  onChange={(v) => setConfig({ ...config, save_sessions: v })}
-                />
-              </div>
-              <div className="flex items-center justify-between border-t border-white/5 py-3">
-                <div>
-                  <span className="text-sm text-slate-200">Show token usage</span>
-                  <p className="text-[11px] text-slate-600 mt-0.5">Display input/output token counts</p>
+                <div className="flex items-center justify-between border-t border-white/5 py-3">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-200">Show token usage</span>
+                    <p className="text-[10.5px] text-slate-500 mt-0.5 font-medium">Display input/output token counts</p>
+                  </div>
+                  <Toggle
+                    checked={config.show_token_usage}
+                    onChange={(v) => setConfig({ ...config, show_token_usage: v })}
+                  />
                 </div>
-                <Toggle
-                  checked={config.show_token_usage}
-                  onChange={(v) => setConfig({ ...config, show_token_usage: v })}
-                />
               </div>
             </div>
 
             {/* API Credentials */}
-            <div className="glass-card rounded-xl p-5 animate-step-in" style={{ animationDelay: '160ms' }}>
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                <h3 className="text-[13px] font-semibold text-slate-200">API Credentials</h3>
+            <div className="glass-card rounded-2xl p-6 border border-white/[0.03] shadow-lg animate-step-in space-y-4" style={{ animationDelay: '160ms' }}>
+              <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                  <KeyRound size={14} className="text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Credentials</h3>
+                  <p className="text-[10px] text-slate-500 font-medium">Configure Google Gemini access keys</p>
+                </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <label className="mb-2 block text-[9.5px] font-bold text-slate-500 uppercase tracking-widest">
                   Google Gemini API Key
                 </label>
                 <input
@@ -210,17 +238,16 @@ export default function ConfigPage() {
                   placeholder="Enter AIza..."
                   value={config.gemini_api_key}
                   onChange={(e) => setConfig({ ...config, gemini_api_key: e.target.value })}
-                  className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200"
+                  className="w-full rounded-xl input-glass px-3.5 py-3 text-xs text-slate-200 focus-ring"
                 />
-                <p className="text-[11px] text-slate-600 mt-1.5">
+                <p className="text-[10.5px] text-slate-500 mt-2 font-medium">
                   Falls back to process.env.GEMINI_API_KEY if not configured here.
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 animate-step-in" style={{ animationDelay: '240ms' }}>
-              Supabase URL and keys are set via environment variables (.env.local) — not editable
-              here, since they require a server restart to take effect.
+            <p className="text-[10.5px] text-slate-600 animate-step-in leading-relaxed text-center px-6" style={{ animationDelay: '240ms' }}>
+              Supabase URL and database credentials are set via server-side environment variables (`.env.local`) and cannot be manipulated inside this client workspace.
             </p>
           </div>
         </div>
