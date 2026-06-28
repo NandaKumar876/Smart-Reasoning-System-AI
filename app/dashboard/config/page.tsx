@@ -10,16 +10,16 @@ interface Config {
   show_why_explanations: boolean;
   save_sessions: boolean;
   show_token_usage: boolean;
-  anthropic_api_key: string;
+  gemini_api_key: string;
 }
 
 const DEFAULT_CONFIG: Config = {
-  model: 'claude-sonnet-4-6',
+  model: 'gemini-2.5-flash',
   max_steps: 6,
   show_why_explanations: true,
   save_sessions: true,
   show_token_usage: false,
-  anthropic_api_key: '',
+  gemini_api_key: '',
 };
 
 function Toggle({
@@ -131,9 +131,10 @@ export default function ConfigPage() {
                   onChange={(e) => setConfig({ ...config, model: e.target.value })}
                   className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200 cursor-pointer"
                 >
-                  <option value="claude-sonnet-4-6">claude-sonnet-4-6 (recommended)</option>
-                  <option value="claude-opus-4-6">claude-opus-4-6</option>
-                  <option value="claude-haiku-4-5">claude-haiku-4-5</option>
+                  <option value="gemini-2.5-flash">gemini-2.5-flash (recommended)</option>
+                  <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                  <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
                 </select>
               </div>
 
@@ -202,17 +203,17 @@ export default function ConfigPage() {
 
               <div>
                 <label className="mb-2 block text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  Anthropic API Key
+                  Google Gemini API Key
                 </label>
                 <input
                   type="password"
-                  placeholder="Enter sk-ant-..."
-                  value={config.anthropic_api_key}
-                  onChange={(e) => setConfig({ ...config, anthropic_api_key: e.target.value })}
+                  placeholder="Enter AIza..."
+                  value={config.gemini_api_key}
+                  onChange={(e) => setConfig({ ...config, gemini_api_key: e.target.value })}
                   className="w-full rounded-xl input-glass px-3.5 py-2.5 text-[13px] text-slate-200"
                 />
                 <p className="text-[11px] text-slate-600 mt-1.5">
-                  Falls back to process.env.ANTHROPIC_API_KEY if not configured here.
+                  Falls back to process.env.GEMINI_API_KEY if not configured here.
                 </p>
               </div>
             </div>
