@@ -14,12 +14,12 @@ export async function GET() {
   const dbConfig = Object.fromEntries(data.map((row) => [row.key, row.value]));
 
   // Mask the API key for the response to avoid exposing it to the browser.
-  const apiKeyValue = dbConfig.anthropic_api_key;
-  const maskedKey = typeof apiKeyValue === 'string' && apiKeyValue.trim() ? 'sk-ant-••••••••••••••••' : '';
+  const apiKeyValue = dbConfig.gemini_api_key;
+  const maskedKey = typeof apiKeyValue === 'string' && apiKeyValue.trim() ? 'AIza••••••••••••••••' : '';
 
   const config = {
     ...dbConfig,
-    anthropic_api_key: maskedKey,
+    gemini_api_key: maskedKey,
   };
 
   return NextResponse.json({ config });
@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
   const updatedKeys = [];
 
   for (const [key, value] of Object.entries(body)) {
-    if (key === 'anthropic_api_key' && value === 'sk-ant-••••••••••••••••') {
+    if (key === 'gemini_api_key' && value === 'AIza••••••••••••••••') {
       // Don't update the key if it was the masked version (meaning it was not changed)
       continue;
     }
