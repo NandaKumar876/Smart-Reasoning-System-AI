@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createSupabaseAdminClient } from '@/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Lightweight chat endpoint wrapping Anthropic API for conversational
+ * Lightweight chat endpoint wrapping Google Gemini API for conversational
  * responses. Separate from the structured reasoning endpoint — this
  * provides freeform conversational help about using the app.
  */
@@ -21,14 +22,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
   }
 
-  let apiKey = process.env.ANTHROPIC_API_KEY;
+  let apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || !apiKey.trim()) {
     try {
       const supabase = createSupabaseAdminClient();
       const { data } = await supabase
         .from('app_config')
         .select('value')
-        .eq('key', 'anthropic_api_key')
+        .eq('key', 'gemini_api_key')
         .single();
       if (data && typeof data.value === 'string' && data.value.trim()) {
         apiKey = data.value.trim();
@@ -53,37 +54,29 @@ export async function POST(req: NextRequest) {
 Be concise, friendly, and helpful. Keep responses under 3 sentences unless the user asks for detail.
 Use markdown formatting sparingly. Never use code blocks unless discussing code.`;
 
+  // Convert chat history to Gemini format
   const history = (body.history ?? []).slice(-10).map((m) => ({
-    role: m.role as 'user' | 'assistant',
-    content: m.content,
+    role: m.role === 'assistant' ? 'model' as const : 'user' as const,
+    parts: [{ text: m.content }],
   }));
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      systemInstruction: systemPrompt,
+      generationConfig: {
+        maxOutputTokens: 300,
+        temperature: 0.7,
       },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: 300,
-        system: systemPrompt,
-        messages: [...history, { role: 'user', content: message }],
-      }),
     });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error('Anthropic chat error:', errData);
-      return NextResponse.json({
-        reply: "Sorry, I'm having trouble connecting right now. Try again in a moment!",
-      });
-    }
+    const chat = model.startChat({
+      history,
+    });
 
-    const data = await response.json();
-    const text = data.content?.[0]?.text ?? "I couldn't generate a response. Please try again.";
+    const result = await chat.sendMessage(message);
+    const text = result.response.text() ?? "I couldn't generate a response. Please try again.";
 
     return NextResponse.json({ reply: text });
   } catch (err) {
