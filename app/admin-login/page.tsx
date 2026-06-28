@@ -47,38 +47,41 @@ function AdminLoginForm() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-base-bg relative overflow-hidden">
-      {/* Ambient background glow */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="flex h-screen items-center justify-center bg-base-bg relative overflow-hidden dot-grid">
+      {/* Ambient background glows */}
+      <div className="absolute top-1/4 left-1/4 w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
 
       <form
         onSubmit={handleSubmit}
-        className="animate-step-in w-[360px] rounded-2xl glass-card p-7 relative"
+        className="animate-step-in w-[380px] rounded-2xl glass-strong p-8 border border-white/[0.04] shadow-2xl relative"
       >
+        {/* Decorative subtle border top light */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+
         {/* Logo */}
-        <div className="mb-6 flex flex-col items-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-glow-md">
-            <Lock size={22} className="text-white" />
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 shadow-glow-md">
+            <Lock size={24} className="text-white" />
           </div>
-          <h1 className="text-base font-semibold text-slate-100">Admin Access</h1>
-          <p className="mt-1 text-xs text-slate-500">Enter your password to continue</p>
+          <h1 className="text-[17px] font-bold text-slate-100 tracking-tight">Admin Gate</h1>
+          <p className="mt-1.5 text-xs text-slate-500 font-medium">Verify credentials to audit backend logs</p>
         </div>
 
         {/* Password input */}
-        <div className="relative mb-4">
+        <div className="relative mb-5">
           <input
             type={showPwd ? 'text' : 'password'}
             autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Admin password"
-            className="w-full rounded-xl input-glass px-4 py-3 text-sm text-slate-100 pr-10"
+            placeholder="System access key"
+            className="w-full rounded-xl input-glass px-4.5 py-3.5 text-xs text-slate-100 pr-11 focus-ring placeholder-slate-650"
           />
           <button
             type="button"
             onClick={() => setShowPwd(!showPwd)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-350 transition-colors"
           >
             {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -86,7 +89,7 @@ function AdminLoginForm() {
 
         {/* Error */}
         {error && (
-          <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400 animate-step-in">
+          <div className="mb-5 rounded-xl bg-rose-500/10 border border-rose-500/20 px-4 py-3 text-xs text-rose-400 animate-step-in font-medium leading-relaxed">
             {error}
           </div>
         )}
@@ -95,18 +98,18 @@ function AdminLoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="gradient-btn w-full rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-50 disabled:transform-none disabled:shadow-none"
+          className="gradient-btn w-full rounded-xl py-3.5 text-xs font-bold text-white disabled:opacity-50 disabled:transform-none disabled:shadow-none"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">
             {loading ? (
               <>
                 <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Verifying…
+                Validating...
               </>
             ) : (
               <>
-                <Sparkles size={14} />
-                Sign in
+                <Sparkles size={14} className="sparkle-spin" />
+                Access Dashboard
               </>
             )}
           </span>
