@@ -67,7 +67,7 @@ export default function ReasonPage() {
           </div>
           <span className="badge badge-indigo flex items-center gap-1.5">
             <Zap size={10} />
-            claude-sonnet-4-6
+            gemini-2.5-flash
           </span>
         </header>
 
