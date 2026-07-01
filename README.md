@@ -113,7 +113,7 @@ vercel
 
 Add the same environment variables in Vercel → Project Settings → Environment Variables.
 
-## Security notes
+# Security notes
 
 - `SUPABASE_SERVICE_ROLE_KEY` bypasses Row Level Security — it's used only in
   `lib/supabase-admin.ts`, imported only by API routes, never by client components.
