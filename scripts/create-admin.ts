@@ -1,10 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
+import * as fs from 'fs';
 import * as path from 'path';
 
-// Load environment variables from .env.local or .env
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+// Parse .env.local or .env manually if process.env values are missing
+function loadEnvFile(filePath: string) {
+  if (!fs.existsSync(filePath)) return;
+  const content = fs.readFileSync(filePath, 'utf-8');
+  content.split('\n').forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+    const equalsIndex = trimmed.indexOf('=');
+    if (equalsIndex !== -1) {
+      const key = trimmed.substring(0, equalsIndex).trim();
+      let value = trimmed.substring(equalsIndex + 1).trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.substring(1, value.length - 1);
+      }
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  });
+}
+
+loadEnvFile(path.resolve(process.cwd(), '.env.local'));
+loadEnvFile(path.resolve(process.cwd(), '.env'));
 
 async function createAdminUser() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
