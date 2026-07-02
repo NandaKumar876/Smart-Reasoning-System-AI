@@ -61,15 +61,23 @@ create table if not exists system_logs (
 create index if not exists system_logs_created_at_idx on system_logs (created_at desc);
 
 -- ============================================================
+-- TABLE: admin_users
+-- Stores pre-approved admin user accounts for access control.
+-- ============================================================
+create table if not exists admin_users (
+  id          uuid references auth.users(id) on delete cascade primary key,
+  email       text unique not null,
+  role        text default 'admin',
+  created_at  timestamptz default now()
+);
+
+-- ============================================================
 -- ROW LEVEL SECURITY
--- Public (anon) clients can INSERT/SELECT sessions (the app needs
--- this to run reasoning + show history) but cannot touch config
--- or logs — those are service-role only, accessed via the admin
--- API routes which use SUPABASE_SERVICE_ROLE_KEY.
 -- ============================================================
 alter table sessions enable row level security;
 alter table app_config enable row level security;
 alter table system_logs enable row level security;
+alter table admin_users enable row level security;
 
 create policy "Anyone can insert sessions"
   on sessions for insert
@@ -81,5 +89,7 @@ create policy "Anyone can read sessions"
   to anon
   using (true);
 
--- No anon policies on app_config / system_logs — service role only,
--- which bypasses RLS by default.
+create policy "Admin users can read their own row"
+  on admin_users for select
+  to authenticated
+  using (auth.uid() = id);
